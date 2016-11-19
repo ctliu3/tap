@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	limiter := NewLeakyBucket(100)
+	limiter := NewLeakyBucket(100) // 100 rate per second
 
 	for i := 0; i < 10; i++ {
 		ok, dur := limiter.Acquire(4)
