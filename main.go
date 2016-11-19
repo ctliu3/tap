@@ -10,10 +10,13 @@ import (
 func main() {
 	limiter := NewLeakyBucket(100)
 
-	prev := time.Now()
 	for i := 0; i < 10; i++ {
-		cur := limiter.Attempt()
-		fmt.Printf("%v\n", cur.Sub(prev))
-		prev = cur
+		ok, dur := limiter.Acquire(4)
+		if ok {
+			fmt.Printf("scuc\n")
+		} else {
+			fmt.Printf("err, should wait %v\n", dur)
+		}
+		time.Sleep(time.Millisecond * 2)
 	}
 }

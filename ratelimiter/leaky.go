@@ -20,7 +20,7 @@ func NewLeakyBucket(rate int) *LeakyBucket {
 	}
 }
 
-func (self *LeakyBucket) Attempt() time.Time {
+func (self *LeakyBucket) Acquire(maxWait int) (bool, time.Duration) {
 	self.Lock()
 	defer self.Unlock()
 
@@ -28,11 +28,15 @@ func (self *LeakyBucket) Attempt() time.Time {
 
 	if self.last.IsZero() {
 		self.last = now
-		return self.last
+		return true, time.Duration(0)
 	}
 
-	self.sleepFor += self.perRequest - now.Sub(self.last)
+	waitDur := self.sleepFor + self.perRequest - now.Sub(self.last)
+	if waitDur > time.Duration(time.Millisecond*time.Duration(maxWait)) {
+		return false, waitDur
+	}
 
+	self.sleepFor = waitDur
 	if self.sleepFor < self.maxSlack {
 		self.sleepFor = self.maxSlack
 	}
@@ -41,9 +45,8 @@ func (self *LeakyBucket) Attempt() time.Time {
 		time.Sleep(self.sleepFor)
 		self.last = now.Add(self.sleepFor)
 		self.sleepFor = 0
-	} else {
-		self.last = now
+		return true, self.sleepFor
 	}
-
-	return self.last
+	self.last = now
+	return true, time.Duration(0)
 }
