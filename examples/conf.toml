@@ -1,0 +1,4 @@
+[bucket]
+name = "token"
+rate = 10
+capacity = 8

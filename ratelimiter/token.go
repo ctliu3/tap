@@ -13,13 +13,22 @@ type TokenBucket struct {
 	last         time.Time
 }
 
-func NewTokenBucket(fillInterval int, capacity int) *TokenBucket {
+// rate is QPS
+func NewTokenBucket(opt BucketOption) (Bucket, error) {
+	rate := opt.Rate
+	capacity := opt.Capacity
+
 	return &TokenBucket{
 		capacity:     capacity,
-		fillInterval: time.Duration(time.Millisecond * time.Duration(fillInterval)),
-	}
+		fillInterval: time.Second / time.Duration(rate),
+	}, nil
 }
 
+func (self *TokenBucket) Name() string {
+	return "TokenBucket"
+}
+
+// maxWait: ms
 func (self *TokenBucket) Acquire(maxWait int) (bool, time.Duration) {
 	self.Lock()
 	defer self.Unlock()
@@ -28,10 +37,12 @@ func (self *TokenBucket) Acquire(maxWait int) (bool, time.Duration) {
 
 	if self.last.IsZero() {
 		self.last = now
-		return true, time.Duration(0)
+		return true, 0
 	}
 
+	// Fill the bucket with the tokens in the time range [last, now]
 	self.fillToken(now)
+
 	if self.avail > 0 {
 		self.avail -= 1
 		return true, 0
@@ -42,6 +53,7 @@ func (self *TokenBucket) Acquire(maxWait int) (bool, time.Duration) {
 		return false, waitDur
 	}
 	time.Sleep(waitDur)
+	self.avail -= 1
 	return true, waitDur
 }
 
@@ -57,4 +69,8 @@ func (self *TokenBucket) fillToken(now time.Time) {
 	if self.avail > self.capacity {
 		self.avail = self.capacity
 	}
+}
+
+func init() {
+	Register("token", NewTokenBucket)
 }
