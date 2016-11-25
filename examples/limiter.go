@@ -10,7 +10,7 @@ import (
 )
 
 type Config struct {
-	Option BucketOption `toml:"bucket"`
+	Option LimiterOption `toml:"limiter"`
 }
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 		return
 	}
 
-	limiter, err := CreateBucket(config.Option)
+	limiter, err := CreateLimiter(config.Option)
 	if err != nil {
 		fmt.Println(err)
 		return

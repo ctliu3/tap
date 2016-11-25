@@ -6,15 +6,14 @@ import (
 )
 
 func TestBasicWorkFlow(t *testing.T) {
-	limiter, err := CreateBucket(BucketOption{
+	limiter, err := CreateLimiter(LimiterOption{
 		Name:     "leaky",
 		Rate:     100,
 		Capacity: 10,
 	})
 	if err != nil {
-		t.Errorf("Instantiate bucket error")
+		t.Errorf("Instantiate limiter error")
 	}
-	// limiter := NewLeakyBucket(100, 10)
 	for i := 0; i < 10; i++ {
 		ok, dur := limiter.Acquire(10)
 		if !ok {
@@ -24,13 +23,13 @@ func TestBasicWorkFlow(t *testing.T) {
 }
 
 func TestSlackInProperSize(t *testing.T) {
-	limiter, err := CreateBucket(BucketOption{
+	limiter, err := CreateLimiter(LimiterOption{
 		Name:     "leaky",
 		Rate:     10,
 		Capacity: 10,
 	})
 	if err != nil {
-		t.Errorf("Instantiate bucket error")
+		t.Errorf("Instantiate limiter error")
 	}
 
 	ok, dur := limiter.Acquire(0)
@@ -49,13 +48,13 @@ func TestSlackInProperSize(t *testing.T) {
 }
 
 func TestConcurrency(t *testing.T) {
-	limiter, err := CreateBucket(BucketOption{
+	limiter, err := CreateLimiter(LimiterOption{
 		Name:     "leaky",
 		Rate:     10,
 		Capacity: 10,
 	})
 	if err != nil {
-		t.Errorf("Instantiate bucket error")
+		t.Errorf("Instantiate limiter error")
 	}
 
 	requestNum := 10

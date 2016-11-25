@@ -1,4 +1,4 @@
-[bucket]
-name = "token"
+[limiter]
+policy = "token"
 rate = 10
 capacity = 8

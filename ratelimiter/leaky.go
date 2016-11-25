@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type LeakyBucket struct {
+type LeakyLimiter struct {
 	sync.Mutex
 	capacity   int
 	perRequest time.Duration
@@ -17,23 +17,23 @@ type LeakyBucket struct {
 // Parameter `rate' is request number the backend service can handle in each
 // second, say, QPS.
 // set capacity to 0 if you don't a buffer to handle burstiness
-func NewLeakyBucket(opt BucketOption) (Bucket, error) {
+func NewLeakyLimiter(opt LimiterOption) (Limiter, error) {
 	rate := opt.Rate
 	capacity := opt.Capacity
 
-	return &LeakyBucket{
+	return &LeakyLimiter{
 		perRequest: time.Second / time.Duration(rate),
 		capacity:   capacity,
 		maxSlack:   -time.Duration(capacity) * time.Second / time.Duration(rate),
 	}, nil
 }
 
-func (self *LeakyBucket) Name() string {
-	return "LeakyBucket"
+func (self *LeakyLimiter) Name() string {
+	return "LeakyLimiter"
 }
 
 // maxWait: ms
-func (self *LeakyBucket) Acquire(maxWait int) (bool, time.Duration) {
+func (self *LeakyLimiter) Acquire(maxWait int) (bool, time.Duration) {
 	self.Lock()
 	defer self.Unlock()
 
@@ -69,5 +69,5 @@ func (self *LeakyBucket) Acquire(maxWait int) (bool, time.Duration) {
 }
 
 func init() {
-	Register("leaky", NewLeakyBucket)
+	Register("leaky", NewLeakyLimiter)
 }

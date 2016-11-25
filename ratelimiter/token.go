@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type TokenBucket struct {
+type TokenLimiter struct {
 	sync.Mutex
 	capacity     int
 	avail        int // available token number
@@ -14,22 +14,22 @@ type TokenBucket struct {
 }
 
 // rate is QPS
-func NewTokenBucket(opt BucketOption) (Bucket, error) {
+func NewTokenLimiter(opt LimiterOption) (Limiter, error) {
 	rate := opt.Rate
 	capacity := opt.Capacity
 
-	return &TokenBucket{
+	return &TokenLimiter{
 		capacity:     capacity,
 		fillInterval: time.Second / time.Duration(rate),
 	}, nil
 }
 
-func (self *TokenBucket) Name() string {
-	return "TokenBucket"
+func (self *TokenLimiter) Name() string {
+	return "TokenLimiter"
 }
 
 // maxWait: ms
-func (self *TokenBucket) Acquire(maxWait int) (bool, time.Duration) {
+func (self *TokenLimiter) Acquire(maxWait int) (bool, time.Duration) {
 	self.Lock()
 	defer self.Unlock()
 
@@ -57,7 +57,7 @@ func (self *TokenBucket) Acquire(maxWait int) (bool, time.Duration) {
 	return true, waitDur
 }
 
-func (self *TokenBucket) fillToken(now time.Time) {
+func (self *TokenLimiter) fillToken(now time.Time) {
 	// Default, each interval add one token.
 	fillTickNum := int(now.Sub(self.last) / self.fillInterval)
 	if fillTickNum <= 0 {
@@ -72,5 +72,5 @@ func (self *TokenBucket) fillToken(now time.Time) {
 }
 
 func init() {
-	Register("token", NewTokenBucket)
+	Register("token", NewTokenLimiter)
 }
