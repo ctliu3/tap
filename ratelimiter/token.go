@@ -8,9 +8,12 @@ import (
 type TokenLimiter struct {
 	sync.Mutex
 	capacity     int
-	avail        int // available token number
 	fillInterval time.Duration
-	last         time.Time
+
+	// avail and last variables change during process
+	// used for local store version
+	avail int // available token number
+	last  time.Time
 }
 
 // rate is QPS

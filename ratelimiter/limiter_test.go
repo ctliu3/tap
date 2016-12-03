@@ -7,7 +7,7 @@ import (
 
 func TestBasicWorkFlow(t *testing.T) {
 	limiter, err := CreateLimiter(LimiterOption{
-		Name:     "leaky",
+		Policy:   "leaky",
 		Rate:     100,
 		Capacity: 10,
 	})
@@ -24,7 +24,7 @@ func TestBasicWorkFlow(t *testing.T) {
 
 func TestSlackInProperSize(t *testing.T) {
 	limiter, err := CreateLimiter(LimiterOption{
-		Name:     "leaky",
+		Policy:   "leaky",
 		Rate:     10,
 		Capacity: 10,
 	})
@@ -49,7 +49,7 @@ func TestSlackInProperSize(t *testing.T) {
 
 func TestConcurrency(t *testing.T) {
 	limiter, err := CreateLimiter(LimiterOption{
-		Name:     "leaky",
+		Policy:   "leaky",
 		Rate:     10,
 		Capacity: 10,
 	})
@@ -57,24 +57,24 @@ func TestConcurrency(t *testing.T) {
 		t.Errorf("Instantiate limiter error")
 	}
 
-	requestNum := 10
-	done := make(chan bool, requestNum)
+	size := 10
+	done := make(chan bool, size)
 
-	for i := 0; i < requestNum; i++ {
+	for i := 0; i < size; i++ {
 		go func(id int) {
 			ok, _ := limiter.Acquire(0)
 			done <- ok
 		}(i)
 	}
 
-	okNum := 0
-	for i := 0; i < requestNum; i++ {
+	nOK := 0
+	for i := 0; i < size; i++ {
 		c := <-done
 		if c {
-			okNum += 1
+			nOK += 1
 		}
 	}
-	if okNum != 1 {
+	if nOK != 1 {
 		t.Errorf("okNum should be 1 (the first request)\n")
 	}
 }
